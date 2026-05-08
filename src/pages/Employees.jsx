@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api/axios';
 import Modal from '../components/ui/Modal';
+import ConfirmDialog from '../components/ui/ConfirmDialog';
 
 const Employees = () => {
     const [employees, setEmployees] = useState([]);
@@ -20,6 +21,8 @@ const Employees = () => {
         role: 'employee'
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, employeeId: null });
 
     const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
     const currentUserEmail = currentUser.email;
@@ -92,14 +95,18 @@ const Employees = () => {
         }
     };
 
-    const handleDelete = async (id) => {
-        if (window.confirm('Are you sure you want to permanently delete this employee?')) {
-            try {
-                await api.delete(`/employees/${id}`);
-                await fetchEmployees();
-            } catch (err) {
-                alert(err.response?.data?.message || 'Failed to delete employee.');
-            }
+    const handleDelete = (id) => {
+        setConfirmDialog({ isOpen: true, employeeId: id });
+    };
+
+    const confirmDelete = async () => {
+        try {
+            await api.delete(`/employees/${confirmDialog.employeeId}`);
+            await fetchEmployees();
+        } catch (err) {
+            alert(err.response?.data?.message || 'Failed to delete employee.');
+        } finally {
+            setConfirmDialog({ isOpen: false, employeeId: null });
         }
     };
 
@@ -296,6 +303,15 @@ const Employees = () => {
                     </div>
                 </form>
             </Modal>
+
+            <ConfirmDialog
+                isOpen={confirmDialog.isOpen}
+                title="Delete Employee"
+                message="Are you sure you want to permanently delete this employee? This cannot be undone."
+                confirmLabel="Delete"
+                onConfirm={confirmDelete}
+                onCancel={() => setConfirmDialog({ isOpen: false, employeeId: null })}
+            />
         </div>
     );
 };

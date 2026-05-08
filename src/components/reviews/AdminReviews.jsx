@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../api/axios';
 import Modal from '../ui/Modal';
+import ConfirmDialog from '../ui/ConfirmDialog';
 
 const AdminReviews = () => {
     const [reviews, setReviews] = useState([]);
@@ -18,6 +19,8 @@ const AdminReviews = () => {
     });
 
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, reviewId: null });
 
     const [isFeedbacksModalOpen, setIsFeedbacksModalOpen] = useState(false);
     const [selectedReviewForFeedbacks, setSelectedReviewForFeedbacks] = useState(null);
@@ -75,14 +78,18 @@ const AdminReviews = () => {
         setIsAdminModalOpen(true);
     };
 
-    const handleDeleteReview = async (id) => {
-        if (window.confirm('Are you sure you want to permanently delete this review?')) {
-            try {
-                await api.delete(`/reviews/${id}`);
-                await fetchData();
-            } catch (err) {
-                alert(err.response?.data?.message || 'Failed to delete review.');
-            }
+    const handleDeleteReview = (id) => {
+        setConfirmDialog({ isOpen: true, reviewId: id });
+    };
+
+    const confirmDeleteReview = async () => {
+        try {
+            await api.delete(`/reviews/${confirmDialog.reviewId}`);
+            await fetchData();
+        } catch (err) {
+            alert(err.response?.data?.message || 'Failed to delete review.');
+        } finally {
+            setConfirmDialog({ isOpen: false, reviewId: null });
         }
     };
 
@@ -249,7 +256,7 @@ const AdminReviews = () => {
                                 Assign Reviewers
                             </label>
                             <div className="max-h-40 overflow-y-auto bg-zinc-900/50 border border-zinc-800 rounded-md p-2 space-y-1">
-                                {employees.filter(emp => emp._id !== adminFormData.employee).map(emp => (
+                                {employees.filter(emp => emp._id !== adminFormData.employee && emp.role !== 'admin').map(emp => (
                                     <label key={emp._id} className="flex items-center space-x-3 p-2 hover:bg-zinc-800/50 rounded-md cursor-pointer transition-colors">
                                         <input
                                             type="checkbox"
@@ -336,6 +343,15 @@ const AdminReviews = () => {
                     </div>
                 </div>
             </Modal>
+
+            <ConfirmDialog
+                isOpen={confirmDialog.isOpen}
+                title="Delete Review"
+                message="Are you sure you want to permanently delete this review? This cannot be undone."
+                confirmLabel="Delete"
+                onConfirm={confirmDeleteReview}
+                onCancel={() => setConfirmDialog({ isOpen: false, reviewId: null })}
+            />
         </div>
     );
 };
