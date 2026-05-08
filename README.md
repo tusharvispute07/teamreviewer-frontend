@@ -81,6 +81,19 @@ The app will be available at **http://localhost:5173** by default.
 
 ---
 
+## Demo Credentials
+
+Use these credentials to log in and explore the app:
+
+| Role | Email | Password |
+|---|---|---|
+| **Admin** | `admin@gmail.com` | `admin` |
+| **Employee** | *(any other employee)* | `12345678` |
+
+> The admin account has full access to employee management, review creation/deletion, and the admin dashboard. Employee accounts can only view their assigned reviews and submit feedback.
+
+---
+
 ## Application Routes
 
 | Path | Access | Component | Description |
